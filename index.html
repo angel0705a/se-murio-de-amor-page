@@ -5,9 +5,8 @@
 <title>💔 Se murió de amor 💔</title>
 <style>
     body { margin:0; padding:0; background:#ffe6f0; font-family:Arial,sans-serif; color:#fff; text-align:center;}
-    /* Pantalla única visible */
     .pantalla { 
-        display:block; 
+        display:none; /* Oculta ambas pantallas al inicio */
         background: rgba(255,255,255,0.1); 
         margin:50px auto; 
         padding:25px; 
@@ -31,7 +30,7 @@
     }
     button:hover { background:#ff1c6e; }
     img { width:100%; border-radius:15px; margin-bottom:20px; }
-    /* Ocultamos el reproductor nativo para que solo se vea el botón */
+    /* Ocultamos el elemento de audio HTML5 */
     #my-audio { 
         display: none; 
     } 
@@ -39,18 +38,32 @@
 </head>
 <body>
 
-<div class="pantalla">
+<h1>💔 Bienvenido 💔</h1>
+<p>Elige una pantalla:</p>
+
+<button onclick="mostrarPantalla('p1')">Pantalla 1</button>
+<button onclick="mostrarPantalla('p2')">Pantalla 2</button>
+
+<audio id="my-audio" preload="auto">
+    <source src="Se-Murio-De-Amor.mp3" type="audio/mpeg">
+    Tu navegador no soporta el elemento de audio.
+</audio>
+
+<div id="p1" class="pantalla">
+    <h1>Pantalla 1 😊</h1>
+    <p>Contenido de la primera pantalla.</p>
+    <button onclick="ocultar()">Regresar</button>
+</div>
+
+<div id="p2" class="pantalla">
     <img src="https://i.pinimg.com/originals/0b/fe/d1/0bfed195776c15aabc148e8f5aa20a5a.jpg" alt="Se murió de amor">
     <h1>💔 Se murió de amor 💔</h1>
     
-    <p id="audio-status">Haz clic en el botón para reproducir la canción.</p>
-    
-    <audio id="my-audio" preload="auto">
-        <source src="se_murio_de_amor.mp3" type="audio/mpeg">
-        Tu navegador no soporta el elemento de audio.
-    </audio>
+    <p id="audio-status">La canción está lista para sonar.</p> 
 
     <button id="playPauseButton" onclick="togglePlayPause()">▶️ Reproducir</button>
+    
+    <button onclick="ocultar()">Regresar</button>
 </div>
 
 <script>
@@ -58,19 +71,36 @@
     const playPauseButton = document.getElementById('playPauseButton');
     const statusElement = document.getElementById('audio-status');
 
+    // Función para mostrar pantalla
+    function mostrarPantalla(id) {
+        ocultar();
+        document.getElementById(id).style.display = 'block';
+
+        if(id === 'p2') {
+            // Asegurarse de que el estado inicial del botón sea correcto al entrar en P2
+            if (audio.paused && !audio.ended) {
+                playPauseButton.innerText = '▶️ Reproducir';
+                statusElement.innerText = 'La canción está lista para sonar.';
+            } else if (audio.ended) {
+                playPauseButton.innerText = '🔁 Reproducir de Nuevo';
+                statusElement.innerText = 'Fin de la canción.';
+            }
+        }
+    }
+
     // Función principal para alternar Reproducir/Pausar
     function togglePlayPause() {
         if (audio.paused || audio.ended) {
-            // Usa .play() para iniciar el audio. Esta acción requiere el clic del usuario,
-            // lo que garantiza la reproducción en todos los dispositivos.
+            // Inicia la reproducción (el clic del usuario desbloquea el audio)
             audio.play()
                 .then(() => {
+                    // Si el audio se reproduce
                     playPauseButton.innerText = '⏸️ Pausar';
                     statusElement.innerText = '🎶 La canción se está reproduciendo...';
                 })
                 .catch(error => {
-                    // Manejo de errores de carga (por si el archivo no existe)
-                    statusElement.innerText = 'Error: No se pudo cargar la canción. Verifica la ruta del MP3.';
+                    // Maneja errores de reproducción
+                    statusElement.innerText = 'Error: No se pudo reproducir la canción.';
                     console.error("Error de reproducción:", error);
                 });
         } else {
@@ -79,6 +109,17 @@
             playPauseButton.innerText = '▶️ Reanudar';
             statusElement.innerText = 'Pausa.';
         }
+    }
+
+    // Función para ocultar pantallas
+    function ocultar() {
+        document.getElementById('p1').style.display = 'none';
+        document.getElementById('p2').style.display = 'none';
+        
+        // Detener y resetear el audio al salir de la Pantalla 2
+        audio.pause();
+        // Si quieres que el audio comience desde el principio al volver a P2:
+        audio.currentTime = 0; 
     }
 
     // Escucha el evento 'ended' para actualizar el botón cuando la canción termina
